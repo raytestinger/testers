@@ -135,7 +135,7 @@ close $perlbuilds_fh;
 say "Perl revisions to test with:\n @revs" if ($verbose);
 
 my $TIMEOUT = 120;
-my $pm      = Parallel::ForkManager->new(10);
+my $pm      = Parallel::ForkManager->new(5);
 my @jobs    = 1 .. scalar @sorted_modules;
 my $killed  = 0;
 
@@ -147,6 +147,8 @@ while ( @jobs || $pm->running_procs ) {
 
     # Check to see if any workers are finished
     $pm->reap_finished_children;
+    say "current time " . time;
+    say Dumper %watching;
 
     # Check to see if any workers need to be killed because of the
     # timeout. We must do this if we've reached the limit of the number
@@ -173,9 +175,12 @@ while ( @jobs || $pm->running_procs ) {
 
     # Start a new job
     my $job = shift @jobs;
+
+    ### synopsis says $pm->start should be after foreach
     my $pid = $pm->start;
 
     # Parent process: Start tracking the job worker
+    ### where does this go if I start process after foreach
     if ($pid) {
 
         # Add to the watchdog timer
@@ -187,27 +192,26 @@ while ( @jobs || $pm->running_procs ) {
     # put your application code here
     # Child process: Start the job
     say "[$$] Starting child process";
+    say "Skipping over already tested modules" if ($verbose);
+### LOOP:
     foreach my $module (@sorted_modules) {
+    ### synopsis says my $pm->start and next LOOP: should be here
 
         # has module already been tested?
         chomp($module);
         my $tested = 0;
         $tested = `grep -c $module $modules_tested_log`;
         chomp($tested);
-        if ( $tested > 0 ) {
-            say "$module already tested, skip it" if ($verbose);
-        }
-        else {
-            say "$module not yet tested, continue" if ($verbose);
+        unless ( $tested > 0 ) {
+            say "$module not yet tested, continue " if ($verbose);
             `echo $module >> $modules_tested_log`;
             test_module($module);
-            say "exiting script" if ($verbose);
+            say "exiting script " if ($verbose);
             system("date");
-            say "<=============" if ($verbose);
+            say "<============= " if ($verbose);
         }
     }
     say "[$$] Finished child process";
-
     $pm->finish;
 }
 
