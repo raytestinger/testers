@@ -77,7 +77,7 @@ close $modules_fh;
 LWP::Simple::getstore( $disabled_file_url, $disabled_file );
 my $Disabled = YAML::LoadFile($disabled_file);
 
-# myDisabled file containing my additions
+# myDisabled file contains tester's additions
 my $myDisabled = YAML::LoadFile($mydisabled_file);
 open my $tmp_fh,           '<', "tmp";
 open my $disabled_list_fh, '>', $running_disabled_list
@@ -175,8 +175,6 @@ while ( @jobs || $pm->running_procs ) {
 
     # Start a new job
     my $job = shift @jobs;
-
-    ### synopsis says $pm->start should be after foreach
     my $pid = $pm->start;
 
     # Parent process: Start tracking the job worker
@@ -193,10 +191,7 @@ while ( @jobs || $pm->running_procs ) {
     # Child process: Start the job
     say "[$$] Starting child process";
     say "Skipping over already tested modules" if ($verbose);
-### LOOP:
     foreach my $module (@sorted_modules) {
-    ### synopsis says my $pm->start and next LOOP: should be here
-
         # has module already been tested?
         chomp($module);
         my $tested = 0;
@@ -219,7 +214,7 @@ $pm->reap_finished_children;
 
 sub test_module {
 
-# $id contains (example)
+# arg contains (example)
 # http://cpan.cpantesters.org/authors/id/D/DA/DAGOLDEN/Acme-Devel-Hide-Tiny-0.001.tar.gz
     my ($module) = @_;
     say "arg to test_module input:  $module " if ($verbose);
@@ -257,8 +252,6 @@ sub test_module {
 
         my $BUILD_DIR     = $ENV{PERL_CPANM_HOME};
         my $BUILD_LOGFILE = "$BUILD_DIR/build.log";
-
-        #            my $CPANM_REPORTER_HOME = "$function_cpanmreporter_home";
 
         unless ( -d $BUILD_DIR ) {
             mkdir $BUILD_DIR;
