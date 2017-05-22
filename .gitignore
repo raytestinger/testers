@@ -18,3 +18,15 @@ nytprof.out
 *.o
 *.bs
 /_eumm/
+typescript
+*.tdy
+*.db
+stuff*
+/charts/*
+/file/*
+/recent/*
+/recent_files/*
+/reporter_logs/*
+/smoke/*
+/typescript
+
